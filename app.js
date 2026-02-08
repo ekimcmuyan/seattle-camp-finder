@@ -605,6 +605,14 @@
     return neighborhoodCamps.filter(c => kid.interests.includes(c.subcategory));
   }
 
+  function getOneDropoffCamps(profile) {
+    if (!profile.kids || profile.kids.length < 2) return [];
+    const neighborhoodCamps = getNeighborhoodCamps(profile);
+    return neighborhoodCamps.filter(c => {
+      return profile.kids.every(k => (k.interests || []).includes(c.subcategory));
+    });
+  }
+
   function getNewThingsToTry(profile) {
     const allKidInterests = new Set();
     profile.kids.forEach(k => {
@@ -668,26 +676,80 @@
       if (row) bindWeekChips(row);
     });
 
-    // Section B: New Things to Try
+    // Section B1: One Drop-off Options
+    const oneDropoffCamps = getOneDropoffCamps(profile);
+    let dropoffHtml = "";
+    if (oneDropoffCamps.length > 0 && profile.kids.length >= 2) {
+      const kidNames = profile.kids.map(k => k.name);
+      const namesStr = kidNames.length === 2
+        ? kidNames.join(" & ")
+        : kidNames.slice(0, -1).join(", ") + " & " + kidNames[kidNames.length - 1];
+      dropoffHtml = `<div class="browse-section">
+        <h3 class="browse-section-title">
+          <span class="dropoff-icon">&#128664;</span>
+          One Drop-off Options
+          <span class="browse-section-subtitle">— camps ${namesStr} all love</span>
+        </h3>
+        <div class="recommended-scroll-row" id="oneDropoffRow">
+          ${oneDropoffCamps.map(c => renderCard(c)).join("")}
+        </div>
+      </div>`;
+    }
+
+    // Section B2: New Things to Try
     const newCamps = getNewThingsToTry(profile);
+    let newHtml = "";
     if (newCamps.length > 0) {
-      newSection.innerHTML = `<div class="browse-section">
+      newHtml = `<div class="browse-section">
         <h3 class="browse-section-title">New Things to Try</h3>
         <div class="recommended-scroll-row" id="newThingsRow">
           ${newCamps.map(c => renderCard(c)).join("")}
         </div>
       </div>`;
-      const newRow = document.getElementById("newThingsRow");
-      if (newRow) bindWeekChips(newRow);
-    } else {
-      newSection.innerHTML = "";
     }
+
+    newSection.innerHTML = dropoffHtml + newHtml;
+
+    const dropoffRow = document.getElementById("oneDropoffRow");
+    if (dropoffRow) bindWeekChips(dropoffRow);
+    const newRow = document.getElementById("newThingsRow");
+    if (newRow) bindWeekChips(newRow);
 
     // Section C: Full List
     fullListSection.style.display = "block";
     renderCategoryTabs();
     renderSubcategoryChips();
     renderFullListCamps();
+    initScrollHints();
+  }
+
+  function initScrollHints() {
+    document.querySelectorAll(".recommended-scroll-row").forEach(row => {
+      const wrapper = row.closest(".scroll-row-wrapper");
+      if (wrapper) return;
+
+      const parent = row.parentNode;
+      const wrap = document.createElement("div");
+      wrap.className = "scroll-row-wrapper";
+      parent.insertBefore(wrap, row);
+      wrap.appendChild(row);
+
+      const hint = document.createElement("div");
+      hint.className = "scroll-hint";
+      hint.innerHTML = '<span class="scroll-hint-arrow">&rsaquo;</span>';
+      wrap.appendChild(hint);
+
+      function updateHint() {
+        const atEnd = row.scrollLeft + row.clientWidth >= row.scrollWidth - 10;
+        hint.classList.toggle("hidden", atEnd);
+      }
+      row.addEventListener("scroll", updateHint, { passive: true });
+      updateHint();
+
+      hint.addEventListener("click", () => {
+        row.scrollBy({ left: 320, behavior: "smooth" });
+      });
+    });
   }
 
   // ── Full List Filtering ──
