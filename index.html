@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Greater Seattle Camp Finder -- Summer 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Righteous&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- ONBOARDING WIZARD                           -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="wizard" class="wizard-overlay" style="display:none;">
+    <div class="wizard-container">
+      <div class="wizard-progress">
+        <div class="wizard-step-dot active" data-step="1">1</div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step-dot" data-step="2">2</div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step-dot" data-step="3">3</div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step-dot" data-step="4">4</div>
+      </div>
+
+      <!-- Step 1: School District -->
+      <div class="wizard-step active" id="wizardStep1">
+        <h2 class="wizard-title">What school district are you in?</h2>
+        <p class="wizard-subtitle">We'll build a summer calendar based on your school dates.</p>
+        <div class="district-select-wrapper">
+          <select class="district-select" id="districtSelect">
+            <option value="">-- Select your school district --</option>
+          </select>
+        </div>
+        <div id="customDateFields" style="display:none;">
+          <div class="custom-date-row">
+            <label>Last day of school:
+              <input type="date" id="customLastDay" class="date-input">
+            </label>
+            <label>First day of school:
+              <input type="date" id="customFirstDay" class="date-input">
+            </label>
+          </div>
+        </div>
+        <div class="district-preview" id="districtPreview"></div>
+        <div class="wizard-error" id="districtError">Please select a school district.</div>
+        <div class="wizard-nav">
+          <div></div>
+          <button class="wizard-btn wizard-btn-next" id="wizardNext1">Next &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Neighborhoods -->
+      <div class="wizard-step" id="wizardStep2">
+        <h2 class="wizard-title">Where would you like to look for camps?</h2>
+        <p class="wizard-subtitle">Select the neighborhoods you're willing to drive to.</p>
+        <div class="neighborhood-grid" id="neighborhoodGrid"></div>
+        <div class="wizard-error" id="neighborhoodError">Please select at least one neighborhood.</div>
+        <div class="wizard-nav">
+          <button class="wizard-btn wizard-btn-back" id="wizardBack2">&larr; Back</button>
+          <button class="wizard-btn wizard-btn-next" id="wizardNext2">Next &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Kids -->
+      <div class="wizard-step" id="wizardStep3">
+        <h2 class="wizard-title">Tell us about your kids!</h2>
+        <p class="wizard-subtitle">How many kids are you planning camps for?</p>
+        <div class="kid-count-btns" id="kidCountBtns">
+          <button class="kid-count-btn" data-count="1">1</button>
+          <button class="kid-count-btn" data-count="2">2</button>
+          <button class="kid-count-btn" data-count="3">3</button>
+          <button class="kid-count-btn" data-count="4">4</button>
+        </div>
+        <div class="kids-form" id="kidsForm"></div>
+        <div class="wizard-error" id="kidsError">Please fill in all kid names.</div>
+        <div class="wizard-nav">
+          <button class="wizard-btn wizard-btn-back" id="wizardBack3">&larr; Back</button>
+          <button class="wizard-btn wizard-btn-next" id="wizardNext3">Next &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Per-Kid Interests -->
+      <div class="wizard-step" id="wizardStep4">
+        <h2 class="wizard-title">What are your kids into?</h2>
+        <p class="wizard-subtitle">Pick interests for each kid — we'll personalize recommendations.</p>
+        <div class="kid-interest-tabs" id="kidInterestTabs"></div>
+        <div class="interests-grid" id="interestsGrid"></div>
+        <div class="wizard-error" id="interestsError">Please select at least one interest for each kid.</div>
+        <div class="wizard-nav">
+          <button class="wizard-btn wizard-btn-back" id="wizardBack4">&larr; Back</button>
+          <button class="wizard-btn wizard-btn-next wizard-btn-finish" id="wizardFinish">Let's Go! &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- MAIN APP                                    -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="mainApp" style="display:none;">
+
+    <header class="app-header">
+      <div class="header-content">
+        <h1>Greater Seattle Camp Finder <span class="year">2026</span></h1>
+        <p class="subtitle" id="headerSubtitle">Summer Camps for the Greater Seattle Area</p>
+        <p class="school-note" id="schoolNote"></p>
+      </div>
+      <div class="header-actions">
+        <button class="header-icon-btn" id="helpBtn" title="How to use">&#63;</button>
+        <button class="header-icon-btn" id="settingsBtn" title="Start over">&#8962;</button>
+      </div>
+    </header>
+
+    <!-- HOW-TO MODAL -->
+    <div class="howto-overlay" id="howtoOverlay" style="display:none;">
+      <div class="howto-modal">
+        <button class="howto-close" id="howtoClose">&times;</button>
+        <h2 class="howto-title">How to Use Camp Finder</h2>
+
+        <div class="howto-step">
+          <div class="howto-step-num">1</div>
+          <div>
+            <h3>Browse Camps</h3>
+            <p>Scroll through recommended camps for each kid, discover new activities in "New Things to Try", or browse the full list by category.</p>
+          </div>
+        </div>
+
+        <div class="howto-step">
+          <div class="howto-step-num">2</div>
+          <div>
+            <h3>Schedule by Clicking Weeks</h3>
+            <p>Each camp card shows available weeks. <strong>Click a week chip</strong> to assign it to a kid. Click again to cycle through kids, assign to all, or remove.</p>
+          </div>
+        </div>
+
+        <div class="howto-step">
+          <div class="howto-step-num">3</div>
+          <div>
+            <h3>My Schedule</h3>
+            <p>Switch to the <strong>My Schedule</strong> tab to see each kid's weekly activities at a glance &mdash; organized week by week with color-coded names.</p>
+          </div>
+        </div>
+
+        <div class="howto-step">
+          <div class="howto-step-num">4</div>
+          <div>
+            <h3>Calendar View</h3>
+            <p>The <strong>Calendar</strong> tab shows a grid of all booked camps across the summer, so you can spot open weeks or overlaps.</p>
+          </div>
+        </div>
+
+        <div class="howto-step">
+          <div class="howto-step-num">&#8962;</div>
+          <div>
+            <h3>Start Over</h3>
+            <p>Tap the <strong>home icon</strong> in the top-right to change your school district, neighborhoods, kids, or interests at any time.</p>
+          </div>
+        </div>
+
+        <button class="howto-got-it" id="howtoGotIt">Got it!</button>
+      </div>
+    </div>
+
+    <nav class="view-nav">
+      <button class="view-btn active" data-view="browse">Browse Camps</button>
+      <button class="view-btn" data-view="schedule">
+        My Schedule <span class="schedule-count" id="scheduleCount">0</span>
+      </button>
+      <button class="view-btn" data-view="calendar">Calendar</button>
+    </nav>
+
+    <!-- BROWSE VIEW -->
+    <main id="browseView" class="view active">
+      <div class="search-bar-container">
+        <input type="text" class="search-bar" id="searchBar" placeholder="Search camps by name, description, or tags...">
+        <button class="search-clear" id="searchClear" style="display:none;">&times;</button>
+      </div>
+
+      <!-- Section A: Per-kid recommended -->
+      <div id="recommendedSections"></div>
+
+      <!-- Section B: New things to try -->
+      <div id="newThingsSection"></div>
+
+      <!-- Section C: Full camp list -->
+      <div id="fullListSection">
+        <div class="category-tabs" id="categoryTabs"></div>
+        <div class="subcategory-chips" id="subcategoryChips"></div>
+        <div class="camps-grid" id="campsGrid"></div>
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <p>No camps match your current filters.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- SCHEDULE VIEW -->
+    <section id="scheduleView" class="view">
+      <h2 class="section-title">My Schedule</h2>
+      <div class="schedule-legend" id="scheduleLegend"></div>
+      <div id="scheduleContent"></div>
+      <div class="empty-state" id="scheduleEmpty" style="display:none;">
+        <p>No camps scheduled yet. Browse camps and click on week chips to schedule them!</p>
+      </div>
+    </section>
+
+    <!-- CALENDAR VIEW -->
+    <section id="calendarView" class="view">
+      <h2 class="section-title">Summer 2026 Calendar</h2>
+      <div class="calendar-legend" id="calendarLegend"></div>
+      <p class="calendar-hint" id="calendarHint"></p>
+      <div class="calendar-container" id="calendarContainer"></div>
+    </section>
+
+  </div>
+
+  <script src="camps-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
